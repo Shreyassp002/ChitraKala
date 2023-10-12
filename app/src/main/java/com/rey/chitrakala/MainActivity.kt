@@ -14,6 +14,11 @@ class MainActivity : AppCompatActivity() {
 
         drawingView = findViewById(R.id.drawing_view)
         drawingView?.setSizeForBrush(20.toFloat())
+
+        val ib_brush: ImageButton = findViewById(R.id.ib_brush)
+        ib_brush.setOnClickListener{
+            showBrushSizeChooserDialog()
+        }
     }
 
     private fun showBrushSizeChooserDialog(){
