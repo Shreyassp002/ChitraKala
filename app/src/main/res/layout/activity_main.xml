@@ -38,7 +38,7 @@
 
 
 
-<!--    Lower things than drawing area-->
+<!--    Lower things than drawing area   -->
 
     <LinearLayout
         android:id="@+id/ll_paint_colors"
