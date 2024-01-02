@@ -1,6 +1,7 @@
 package com.rey.chitrakala
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
@@ -88,8 +89,10 @@ class MainActivity : AppCompatActivity() {
 
   private fun showBrushSizeChooserDialog() {
     val brushDialog = Dialog(this)
+
     brushDialog.setContentView(R.layout.dialog_brush_size)
     brushDialog.setTitle("Brush Size: ")
+
     val smallBtn: ImageButton = brushDialog.findViewById(R.id.ib_small_brush)
     smallBtn.setOnClickListener {
       drawingView?.setSizeForBrush(10.toFloat())
@@ -139,12 +142,13 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
+  @SuppressLint("SuspiciousIndentation")
   private fun showRationaleDialog(
       title: String,
       message: String,
   ) {
     val builder: AlertDialog.Builder = AlertDialog.Builder(this)
-    builder.setTitle(title).setMessage(message).setPositiveButton("Cancel") { dialog, _ ->
+      builder.setTitle(title).setMessage(message).setPositiveButton("Cancel") { dialog, _ ->
       dialog.dismiss()
     }
     builder.create().show()
