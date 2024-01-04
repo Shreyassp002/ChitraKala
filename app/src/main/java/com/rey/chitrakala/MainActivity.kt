@@ -21,6 +21,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
@@ -170,6 +174,20 @@ class MainActivity : AppCompatActivity() {
     view.draw(canvas)
 
     return returnedBitmap
+  }
+
+  private suspend fun saveBitmapFile(mBitmap: Bitmap?): String{
+    var result = ""
+    withContext(Dispatchers.IO){
+      if (mBitmap != null){
+        try{
+          val bytes = ByteArrayOutputStream()
+          mBitmap.compress(Bitmap.CompressFormat.PNG, 90, bytes)
+          val f = File(externalCacheDir?.absoluteFile.toString()
+              + File.separator + "ChitraKala_" + System.currentTimeMillis() / 1000 + ".png")
+        }
+      }
+    }
   }
 
 }
