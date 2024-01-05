@@ -4,12 +4,14 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -21,15 +23,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity() {
 
   private var drawingView: DrawingView? = null
   private var mImageButtonCurrentPaint: ImageButton? = null
+
+  var customProgressDialog: Dialog? = null
 
   val openGalleryLauncher: ActivityResultLauncher<Intent> =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
@@ -90,6 +97,17 @@ class MainActivity : AppCompatActivity() {
       drawingView?.onClickRedo()
     }
 
+    val ib_save: ImageButton = findViewById(R.id.ib_save)
+    ib_save.setOnClickListener {
+      if (isReadStorageAllowed()){
+        showProgressDialog()
+        lifecycleScope.launch {
+          val flDrawingView: FrameLayout = findViewById(R.id.fl_drawing_view_container)
+          saveBitmapFile(getBitmapFromView(flDrawingView)) // Change Canvas to Canvas? if fails
+        }
+      }
+    }
+
     val ib_gallery: ImageButton = findViewById(R.id.ib_gallery)
     ib_gallery.setOnClickListener { requestStoragePermission() }
   }
@@ -136,6 +154,14 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
+  private fun isReadStorageAllowed(): Boolean {
+    val result = ContextCompat.checkSelfPermission(
+        this,
+      Manifest.permission.READ_EXTERNAL_STORAGE
+    )
+    return result == PackageManager.PERMISSION_GRANTED
+  }
+
   private fun requestStoragePermission() {
     if (ActivityCompat.shouldShowRequestPermissionRationale(
         this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
@@ -143,8 +169,8 @@ class MainActivity : AppCompatActivity() {
     } else {
       requestPermission.launch(
           arrayOf(
-              Manifest.permission.READ_EXTERNAL_STORAGE
-              // TODO - Add Writing external storage permission
+              Manifest.permission.READ_EXTERNAL_STORAGE,
+              Manifest.permission.WRITE_EXTERNAL_STORAGE
               ))
     }
   }
@@ -185,8 +211,51 @@ class MainActivity : AppCompatActivity() {
           mBitmap.compress(Bitmap.CompressFormat.PNG, 90, bytes)
           val f = File(externalCacheDir?.absoluteFile.toString()
               + File.separator + "ChitraKala_" + System.currentTimeMillis() / 1000 + ".png")
+
+          val fo = FileOutputStream(f)
+          fo.write(bytes.toByteArray())
+          fo.close()
+
+          result = f.absolutePath
+
+          runOnUiThread{
+
+            cancelProgressDialog()
+            if (result.isNotEmpty()){
+              Toast.makeText(
+                this@MainActivity,
+                "File saved successfully : $result",
+                Toast.LENGTH_SHORT
+              ).show()
+            }else{
+              Toast.makeText(
+                this@MainActivity,
+                "Something went wrong while saving the file.",
+                Toast.LENGTH_SHORT
+              ).show()
+            }
+          }
+        }
+        catch(e: Exception){
+          e.printStackTrace()
         }
       }
+    }
+
+    return result
+  }
+
+
+  private fun showProgressDialog(){
+    customProgressDialog = Dialog(this@MainActivity)
+    customProgressDialog?.setContentView(R.layout.dialog_custom_progress)
+    customProgressDialog?.show()
+  }
+
+  private fun cancelProgressDialog(){
+    if (customProgressDialog != null){
+      customProgressDialog!!.dismiss()
+      customProgressDialog = null
     }
   }
 
